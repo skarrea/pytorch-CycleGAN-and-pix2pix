@@ -114,7 +114,8 @@ class Visualizer():
             ncols = self.ncols
             if ncols > 0:        # show all the images in one visdom panel
                 ncols = min(ncols, len(visuals))
-                h, w = next(iter(visuals.values())).shape[:2]
+                # h, w = next(iter(visuals.values())).shape[:2]
+                h, w = len(visuals) // ncols + bool(len(visuals) % ncols), ncols 
                 table_css = """<style>
                         table {border-collapse: separate; border-spacing: 4px; white-space: nowrap; text-align: center}
                         table td {width: % dpx; height: % dpx; padding: 4px; outline: 4px solid black}
@@ -133,9 +134,9 @@ class Visualizer():
                     if idx % ncols == 0:
                         label_html += '<tr>%s</tr>' % label_html_row
                         label_html_row = ''
-                white_image = np.ones_like(image_numpy.transpose([2, 0, 1])) * 255
+                black_image = np.zeros_like(image_numpy.transpose([2, 0, 1]))
                 while idx % ncols != 0:
-                    images.append(white_image)
+                    images.append(black_image)
                     label_html_row += '<td></td>'
                     idx += 1
                 if label_html_row != '':
@@ -208,6 +209,34 @@ class Visualizer():
         except VisdomExceptionBase:
             self.create_visdom_connections()
 
+    def plot_current_losses_ewma(self, epoch, counter_ratio, losses):
+        """display the current losses on visdom display: dictionary of error labels and values
+
+        Parameters:
+            epoch (int)           -- current epoch
+            counter_ratio (float) -- progress (percentage) in the current epoch, between 0 to 1
+            losses (OrderedDict)  -- training losses stored in the format of (name, float) pairs
+        """
+        """We assume this is called after plot_current_losses and thus the 
+        plot data should already exist"""
+        # if not hasattr(self, 'ewma_win_id'):
+        #     self.ewma_win_id = str(self.get_next_win_id())
+        
+        self.plot_data['Y_ewma'] = np.apply_along_axis(util.ewma_halflife, 0, np.array(self.plot_data['Y']), self.opt.display_ewma_halflife)
+
+        try:
+            self.vis.line(
+                X=np.stack([np.array(self.plot_data['X'])] * len(self.plot_data['legend']), 1),
+                Y=np.array(self.plot_data['Y_ewma']),
+                opts={
+                    'title': self.name + f' enwa loss over time (halflife = {self.opt.display_ewma_halflife})',
+                    'legend': self.plot_data['legend'],
+                    'xlabel': 'epoch',
+                    'ylabel': 'loss'},
+                win=self.display_id + 3)
+        except VisdomExceptionBase:
+            self.create_visdom_connections()
+
     # losses: same format as |losses| of plot_current_losses
     def print_current_losses(self, epoch, iters, losses, t_comp, t_data):
         """print current losses on console; also save the losses to the disk
@@ -226,3 +255,9 @@ class Visualizer():
         print(message)  # print the message
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)  # save the message
+
+    def get_next_win_id(self):
+        win_id = 1
+        while self.vis.win_exists(str(win_id)):
+            win_id += 1
+        return win_id

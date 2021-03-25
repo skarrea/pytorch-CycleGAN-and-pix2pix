@@ -131,6 +131,21 @@ class BaseModel(ABC):
         for name in self.visual_names:
             if isinstance(name, str):
                 visual_ret[name] = getattr(self, name)
+        if 'real_A' in visual_ret.keys() and self.opt.display_split_A_color_channels:
+            # split real_A into separate color channels
+            R, G, B = (visual_ret['real_A'][:,i,:,:] for i in range(3))
+            # remake the visual_ret dict without real_A
+            del visual_ret['real_A']
+
+            tmpDict = OrderedDict({
+                self.opt.display_name_A_R : torch.unsqueeze(R.repeat(3,1,1), 0),
+                self.opt.display_name_A_G : torch.unsqueeze(G.repeat(3,1,1), 0),
+                self.opt.display_name_A_B : torch.unsqueeze(B.repeat(3,1,1), 0),
+            })
+
+            tmpDict.update(visual_ret)
+            visual_ret = tmpDict
+
         return visual_ret
 
     def get_current_losses(self):

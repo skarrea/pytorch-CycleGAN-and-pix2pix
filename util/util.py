@@ -101,3 +101,30 @@ def mkdir(path):
     """
     if not os.path.exists(path):
         os.makedirs(path)
+
+def ewma_halflife(data, halflife):
+    """Calculates the exponentially weighted moving average of an array
+
+    Paramerter:
+        data (np.array) -- 1D np.array
+        halflife -- decay specified as halflife 
+                    see: https://pandas.pydata.org/pandas-docs/version/0.17.0/generated/pandas.ewma.html
+        
+        modified from stackoverflow response from Divakar and Peter Mortensen.
+        https://stackoverflow.com/questions/42869495/numpy-version-of-exponential-weighted-moving-average-equivalent-to-pandas-ewm
+    """
+    alpha = 1 - np.exp(np.log(.5)/halflife)
+    alpha_rev = 1-alpha
+    n = data.shape[0]
+    
+    pows = alpha_rev**(np.arange(n+1))
+    
+    scale_arr = 1/pows[:-1]
+    
+    offset = data[0]*pows[1:]
+    pw0 = alpha*alpha_rev**(n-1)
+    
+    mult = data*pw0*scale_arr
+    cumsums = mult.cumsum()
+    out = offset + cumsums*scale_arr[::-1]
+    return out

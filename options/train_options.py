@@ -24,6 +24,9 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--display_name_A_R', type=str, default = 'A_R', help = 'display name for the R channel of the real_A image. Only if display_split_A_color_cahnnels.')
         parser.add_argument('--display_name_A_G', type=str, default = 'A_G', help = 'display name for the G channel of the real_A image. Only if display_split_A_color_cahnnels.')
         parser.add_argument('--display_name_A_B', type=str, default = 'A_B', help = 'display name for the B channel of the real_A image. Only if display_split_A_color_cahnnels.')
+        # options to plot an exponentially weighted moving average of the losses
+        parser.add_argument('--display_ewma_loss', action='store_true', help='displays a plot with exponentially weighted moving averages in the visdom server.')
+        parser.add_argument('--display_ewma_halflife', type=float, default = 3, help = 'halflife of the ewma see pandas ewma documentation.')
         # network saving and loading parameters
         parser.add_argument('--save_latest_freq', type=int, default=5000, help='frequency of saving the latest results')
         parser.add_argument('--save_epoch_freq', type=int, default=5, help='frequency of saving checkpoints at the end of epochs')

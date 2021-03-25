@@ -3,9 +3,8 @@ import os
 import sys
 import ntpath
 import time
-from . import util, html
 from subprocess import Popen, PIPE
-
+from . import util, html, utilBitDepth
 
 if sys.version_info[0] == 2:
     VisdomExceptionBase = Exception
@@ -13,10 +12,11 @@ else:
     VisdomExceptionBase = ConnectionError
 
 
-def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
+def save_images(opt, webpage, visuals, image_path, aspect_ratio=1.0, width=256):
     """Save images to the disk.
 
     Parameters:
+        opt                      -- stores all the experiment flags; need to be subclass of BaseOptions
         webpage (the HTML class) -- the HTML webpage class that stores these imaegs (see html.py for more details)
         visuals (OrderedDict)    -- an ordered dictionary that stores (name, images (either tensor or numpy) ) pairs
         image_path (str)         -- the string is used to create image paths

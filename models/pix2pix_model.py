@@ -44,6 +44,12 @@ class Pix2PixModel(BaseModel):
         BaseModel.__init__(self, opt)
         # specify the training losses you want to print out. The training/test scripts will call <BaseModel.get_current_losses>
         self.loss_names = ['G_GAN', 'G_L1', 'D_real', 'D_fake']
+        # Add rmse loss if specified.
+        if opt.rmse: 
+            self.rmse = True
+            self.loss_names.append('RMSE')
+        else:
+            self.rmse = False
         # specify the images you want to save/display. The training/test scripts will call <BaseModel.get_current_visuals>
         self.visual_names = ['real_A', 'fake_B', 'real_B']
         # specify the models you want to save to the disk. The training/test scripts will call <BaseModel.save_networks> and <BaseModel.load_networks>
@@ -124,3 +130,10 @@ class Pix2PixModel(BaseModel):
         self.optimizer_G.zero_grad()        # set G's gradients to zero
         self.backward_G()                   # calculate graidents for G
         self.optimizer_G.step()             # udpate G's weights
+        # Add RMSE loss if specified
+        if self.rmse:
+            self.RMSELoss()
+    
+    def RMSELoss(self):
+        self.RMSECrit = torch.nn.MSELoss()
+        self.loss_RMSE = torch.sqrt(self.RMSECrit(self.fake_B, self.real_B))

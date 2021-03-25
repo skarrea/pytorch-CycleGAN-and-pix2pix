@@ -122,7 +122,7 @@ class NpArrayAlignedDataset(BaseDataset):
         # B_transform = get_transform(self.opt, transform_params, grayscale=(self.output_nc == 1))
 
         A_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((70, 50, 222), (141.5, 109, 402))])
-        B_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.0, 0.0, 0.0), (0.06, 0.06, 0.06))])
+        B_transform = transforms.Compose([transforms.ToTensor()])
 
         A = A_transform(A)
         B = B_transform(B)

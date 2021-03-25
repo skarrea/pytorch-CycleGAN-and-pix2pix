@@ -19,6 +19,11 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--update_html_freq', type=int, default=1000, help='frequency of saving training results to html')
         parser.add_argument('--print_freq', type=int, default=100, help='frequency of showing training results on console')
         parser.add_argument('--no_html', action='store_true', help='do not save intermediate training results to [opt.checkpoints_dir]/[opt.name]/web/')
+        # options to split and label the color channels in the display
+        parser.add_argument('--display_split_A_color_channels', action='store_true', help='displays the RGB channels of the A image as separate images')
+        parser.add_argument('--display_name_A_R', type=str, default = 'A_R', help = 'display name for the R channel of the real_A image. Only if display_split_A_color_cahnnels.')
+        parser.add_argument('--display_name_A_G', type=str, default = 'A_G', help = 'display name for the G channel of the real_A image. Only if display_split_A_color_cahnnels.')
+        parser.add_argument('--display_name_A_B', type=str, default = 'A_B', help = 'display name for the B channel of the real_A image. Only if display_split_A_color_cahnnels.')
         # network saving and loading parameters
         parser.add_argument('--save_latest_freq', type=int, default=5000, help='frequency of saving the latest results')
         parser.add_argument('--save_epoch_freq', type=int, default=5, help='frequency of saving checkpoints at the end of epochs')
@@ -35,6 +40,7 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--pool_size', type=int, default=50, help='the size of image buffer that stores previously generated images')
         parser.add_argument('--lr_policy', type=str, default='linear', help='learning rate policy. [linear | step | plateau | cosine]')
         parser.add_argument('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
+        parser.add_argument('--rmse', action='store_true', help='Calculate the RMSE between the fake and real image and display it in the visdom server. Only for pix2pix network')
 
         self.isTrain = True
         return parser

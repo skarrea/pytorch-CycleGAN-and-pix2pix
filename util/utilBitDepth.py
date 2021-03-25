@@ -6,12 +6,15 @@ import numpy as np
 from PIL import Image
 import os
 
-def tensor2im(input_image, imtype=np.float16):
+def tensor2im(input_image, imtype=np.uint8, scaling = 'FD'):
     """"Converts a Tensor array into a numpy image array.
 
     Parameters:
         input_image (tensor) --  the input image tensor array
         imtype (type)        --  the desired type of the converted numpy array
+        scaling (str, list, tuple) -- specifies the scaling of the output image.
+                                      options are FD (full dynamic) and 2 element
+                                      list or tuple with high and low value.
     """
     if not isinstance(input_image, np.ndarray):
         if isinstance(input_image, torch.Tensor):  # get the data from a variable
@@ -24,18 +27,7 @@ def tensor2im(input_image, imtype=np.float16):
         image_numpy = np.transpose(image_numpy, (1, 2, 0))
     else:  # if it is a numpy array, do nothing
         image_numpy = input_image
-    return image_numpy.astype(imtype)
 
-def save_image(image_numpy, image_path, aspect_ratio=1.0, scaling = 'FD'):
-    """Save a numpy image to the disk
-
-    Parameters:
-        image_numpy (numpy array) -- input numpy array
-        image_path (str)          -- the path of the image
-        scaling (str, list, tuple) -- specifies the scaling of the output image.
-                                      options are FD (full dynamic) and 2 element
-                                      list or tuple with high and low value.
-    """
     if scaling == 'FD':
         image_numpy = full_dynamic_scale(image_numpy)
     elif isinstance(scaling, (list, tuple)) and len(scaling) == 2:
@@ -43,7 +35,15 @@ def save_image(image_numpy, image_path, aspect_ratio=1.0, scaling = 'FD'):
     else:
         raise ValueError('Unreconized scaling option. Expected list/tuple of length 2 or FD')
 
-    image_numpy = (image_numpy*255).astype(np.uint8)
+    return (image_numpy*255).astype(imtype)
+
+def save_image(image_numpy, image_path, aspect_ratio=1.0, scaling = 'FD'):
+    """Save a numpy image to the disk
+
+    Parameters:
+        image_numpy (numpy array) -- input numpy array
+        image_path (str)          -- the path of the image
+    """
     
     image_pil = Image.fromarray(image_numpy)
     h, w, _ = image_numpy.shape
@@ -56,4 +56,4 @@ def save_image(image_numpy, image_path, aspect_ratio=1.0, scaling = 'FD'):
 
 def full_dynamic_scale(numpy_array):
     arrMin, arrMax = numpy_array.min(), numpy_array.max()
-    return (numpy_array - arrMin)/(arrMin - arrMax)
+    return (numpy_array - arrMin)/(arrMax - arrMin)

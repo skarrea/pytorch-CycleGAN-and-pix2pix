@@ -133,7 +133,14 @@ class Pix2PixModel(BaseModel):
         # Add RMSE loss if specified
         if self.rmse:
             self.RMSELoss()
-    
-    def RMSELoss(self):
-        self.RMSECrit = torch.nn.MSELoss()
-        self.loss_RMSE = torch.sqrt(self.RMSECrit(self.fake_B, self.real_B))
+
+    def get_validation_losses(self, valDataset):
+        val_loss = torch.empty(len(valDataset))
+        for i, val_data in enumerate(valDataset):
+            self.set_input(val_data)
+            self.test()
+            visuals = self.get_current_visuals()
+            self.RMSELoss()
+            val_loss[i] = self.loss_RMSE
+            self.mean_val_loss, self.std_val_loss = torch.mean(val_loss), torch.std(val_loss)
+        return {'mean_val_loss' :  self.mean_val_loss , 'std_val_loss' : self.std_val_loss}

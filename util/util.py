@@ -128,3 +128,16 @@ def ewma_halflife(data, halflife):
     cumsums = mult.cumsum()
     out = offset + cumsums*scale_arr[::-1]
     return out
+
+def get_options_from_file(optionsFile):
+    """Reads a specified option file and returns an option dictionary.
+    """
+    
+    with open(optionsFile, 'r') as f:
+        opt = f.read().splitlines()
+    opt = opt[1:-1] # removing 
+    opt = [elem.split('\t')[0].strip().split(':') for elem in opt]
+    keys, vals = zip(*opt)
+    vals = [elem.strip() for elem in vals]
+    optDict = {key:val for key,val in zip(keys, vals)}
+    return optDict

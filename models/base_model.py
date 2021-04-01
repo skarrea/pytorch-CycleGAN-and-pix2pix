@@ -243,3 +243,7 @@ class BaseModel(ABC):
             if net is not None:
                 for param in net.parameters():
                     param.requires_grad = requires_grad
+
+    def RMSELoss(self):
+        self.RMSECrit = torch.nn.MSELoss()
+        self.loss_RMSE = torch.sqrt(self.RMSECrit(self.fake_B, self.real_B))

@@ -91,6 +91,15 @@ class Visualizer():
             now = time.strftime("%c")
             log_file.write('================ Training Loss (%s) ================\n' % now)
 
+        if opt.validate:
+        # create a logging file to store validation losses
+            self.val_log_name = os.path.join(opt.checkpoints_dir, opt.name, 'val_loss_log.csv')
+            if os.path.exists(self.val_log_name) and opt.continue_train:
+                pass
+            else:
+                with open(self.val_log_name, 'w+') as val_log_file:
+                    val_log_file.write('time,epoch,iters,val_loss,val_std\n')
+
     def reset(self):
         """Reset the self.saved status"""
         self.saved = False
@@ -196,6 +205,7 @@ class Visualizer():
             self.plot_data = {'X': [], 'Y': [], 'legend': list(losses.keys())}
         self.plot_data['X'].append(epoch + counter_ratio)
         self.plot_data['Y'].append([losses[k] for k in self.plot_data['legend']])
+
         try:
             self.vis.line(
                 X=np.stack([np.array(self.plot_data['X'])] * len(self.plot_data['legend']), 1),
@@ -237,7 +247,57 @@ class Visualizer():
         except VisdomExceptionBase:
             self.create_visdom_connections()
 
-    # losses: same format as |losses| of plot_current_losses
+    def plot_validation_losses(self, epoch, counter_ratio, val_losses):
+        """display the current losses on visdom display: dictionary of error labels and values
+
+        Parameters:
+            epoch (int)           -- current epoch
+            counter_ratio (float) -- progress (percentage) in the current epoch, between 0 to 1
+            losses (Dict) -- validation loss dict with fields mean_val_loss and std_val_loss
+        """
+        
+        loss_crit = self.opt.validation_loss
+
+        val_loss_dict = {
+            loss_crit : val_losses['mean_val_loss'],
+            loss_crit + ' + sd' : val_losses['mean_val_loss'] + val_losses['std_val_loss'],
+            loss_crit + ' - sd' : val_losses['mean_val_loss'] - val_losses['std_val_loss'],
+        }
+
+        if not hasattr(self, 'val_plot_data'):
+            self.val_plot_data = {
+             'X': [],
+             'loss': [],
+             'loss_ewma': [],
+             'loss+sd': [],
+             'loss-sd': [],
+             'legend': [loss_crit, loss_crit + ' ewma', loss_crit + ' + sd', loss_crit + ' - sd']
+             }
+
+        self.val_plot_data['X'].append(epoch + counter_ratio)
+        self.val_plot_data['loss'].append(val_loss_dict[loss_crit])
+        self.val_plot_data['loss+sd'].append(val_loss_dict[loss_crit + ' + sd'])
+        self.val_plot_data['loss-sd'].append(val_loss_dict[loss_crit + ' - sd'])
+        self.val_plot_data['loss_ewma'] = np.apply_along_axis(util.ewma_halflife, 0, np.array(self.val_plot_data['loss']), self.opt.display_ewma_halflife)
+
+        try:
+            self.vis.line(
+                X=np.stack([np.array(self.val_plot_data['X'])] * len(self.val_plot_data['legend']), 1),
+                Y=np.stack(np.array([
+                    self.val_plot_data['loss'],
+                    self.val_plot_data['loss_ewma'],
+                    self.val_plot_data['loss+sd'],
+                    self.val_plot_data['loss-sd'],
+                ]), 1),
+                opts={
+                    'title': self.name + f'Validation loss ({loss_crit})',
+                    'legend': self.val_plot_data['legend'],
+                    'xlabel': 'epoch',
+                    'ylabel': 'loss'},
+                win=self.display_id + 5)
+        except VisdomExceptionBase:
+            self.create_visdom_connections()
+
     def print_current_losses(self, epoch, iters, losses, t_comp, t_data):
         """print current losses on console; also save the losses to the disk
 
@@ -255,6 +315,22 @@ class Visualizer():
         print(message)  # print the message
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)  # save the message
+
+    def print_validation_losses(self, epoch, iters, losses):
+        """print current losses on console; also save the losses to the disk
+
+        Parameters:
+            epoch (int) -- current epoch
+            iters (int) -- current training iteration during this epoch (reset to 0 at the end of every epoch)
+            losses (Dict) -- validation loss dict with fields mean_val_loss and std_val_loss
+        """
+        now = time.strftime("%c")
+        message = ','.join([str(elem) for elem in [now, epoch, iters, float(losses['mean_val_loss']), float(losses['std_val_loss'])]])
+
+        print(f'Validation loss {losses["mean_val_loss"]} +/- {losses["std_val_loss"]}')
+
+        with open(self.val_log_name, "a") as val_log_file:
+            val_log_file.write(message + '\n')  # save the message
 
     def get_next_win_id(self):
         win_id = 1

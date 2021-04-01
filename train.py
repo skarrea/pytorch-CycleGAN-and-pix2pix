@@ -23,12 +23,25 @@ from options.train_options import TrainOptions
 from data import create_dataset
 from models import create_model
 from util.visualizer import Visualizer
+import copy
+import torch
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     dataset_size = len(dataset)    # get the number of images in the dataset.
     print('The number of training images = %d' % dataset_size)
+    
+    # Creating validation options and dataset
+    if opt.validate:
+        valopt = copy.deepcopy(opt)
+        valopt.phase = 'val'
+        valDataset = create_dataset(valopt)
+        valDataset_size = len(valDataset)
+        print('The number of validation images = %d' % valDataset_size)
+        del valopt # we don't need the validation options anymore.
+        with open('val_log.csv', 'w+') as f:
+            f.write('total_iter, epoch, val_loss, val_std\n')
 
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
@@ -69,6 +82,11 @@ if __name__ == '__main__':
                 print('saving the latest model (epoch %d, total_iters %d)' % (epoch, total_iters))
                 save_suffix = 'iter_%d' % total_iters if opt.save_by_iter else 'latest'
                 model.save_networks(save_suffix)
+
+            if opt.validate and total_iters % opt.validation_freq == 0:
+                val_losses = model.get_validation_losses(valDataset)
+                visualizer.print_validation_losses(epoch, total_iters, val_losses)
+                visualizer.plot_validation_losses(epoch, float(epoch_iter) / dataset_size, val_losses)
 
             iter_data_time = time.time()
         if epoch % opt.save_epoch_freq == 0:              # cache our model every <save_epoch_freq> epochs

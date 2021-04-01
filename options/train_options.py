@@ -44,6 +44,11 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--lr_policy', type=str, default='linear', help='learning rate policy. [linear | step | plateau | cosine]')
         parser.add_argument('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
         parser.add_argument('--rmse', action='store_true', help='Calculate the RMSE between the fake and real image and display it in the visdom server. Only for pix2pix network')
+        # Optional validation phase
+        parser.add_argument('--validate', action='store_true', help='Calculate and visualize the validation loss.')
+        parser.add_argument('--validation_loss', type=str, default = 'RMSE', help = 'Validation loss function.')
+        parser.add_argument('--validation_max_im', type=int, default = None, help = 'The maximum number images used for calculating the validation loss.')
+        parser.add_argument('--validation_freq', type=int, default = 3000, help = 'Frequency of iteration before validation loss is calculated.')
 
         self.isTrain = True
         return parser

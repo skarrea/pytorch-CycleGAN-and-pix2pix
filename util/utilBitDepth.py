@@ -5,6 +5,7 @@ import torch
 import numpy as np
 from PIL import Image
 import os
+import numpy as np
 
 def tensor2im(input_image, imtype=np.uint8, scaling = 'FD'):
     """"Converts a Tensor array into a numpy image array.
@@ -36,6 +37,12 @@ def tensor2im(input_image, imtype=np.uint8, scaling = 'FD'):
         raise ValueError('Unreconized scaling option. Expected list/tuple of length 2 or FD')
 
     return (image_numpy*255).astype(imtype)
+
+def saveVisualsAsNpy(im_data, image_path, dtype = np.float16):
+    if not os.path.exists(os.path.dirname(image_path)):
+        os.makedirs(os.path.dirname(image_path))
+    imageNumpy = im_data.data[0].cpu().float().numpy().astype(dtype)
+    np.save(image_path, imageNumpy)
 
 def save_image(image_numpy, image_path, aspect_ratio=1.0, scaling = 'FD'):
     """Save a numpy image to the disk

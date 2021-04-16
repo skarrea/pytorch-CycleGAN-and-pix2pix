@@ -19,11 +19,6 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--update_html_freq', type=int, default=1000, help='frequency of saving training results to html')
         parser.add_argument('--print_freq', type=int, default=100, help='frequency of showing training results on console')
         parser.add_argument('--no_html', action='store_true', help='do not save intermediate training results to [opt.checkpoints_dir]/[opt.name]/web/')
-        # options to split and label the color channels in the display
-        parser.add_argument('--display_split_A_color_channels', action='store_true', help='displays the RGB channels of the A image as separate images')
-        parser.add_argument('--display_name_A_R', type=str, default = 'A_R', help = 'display name for the R channel of the real_A image. Only if display_split_A_color_cahnnels.')
-        parser.add_argument('--display_name_A_G', type=str, default = 'A_G', help = 'display name for the G channel of the real_A image. Only if display_split_A_color_cahnnels.')
-        parser.add_argument('--display_name_A_B', type=str, default = 'A_B', help = 'display name for the B channel of the real_A image. Only if display_split_A_color_cahnnels.')
         # options to plot an exponentially weighted moving average of the losses
         parser.add_argument('--display_ewma_loss', action='store_true', help='displays a plot with exponentially weighted moving averages in the visdom server.')
         parser.add_argument('--display_ewma_halflife', type=float, default = 3, help = 'halflife of the ewma see pandas ewma documentation.')

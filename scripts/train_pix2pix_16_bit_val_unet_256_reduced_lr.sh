@@ -1,0 +1,2 @@
+set -ex
+python train.py --dataroot datasets/16bitnumpyarrayDatasetValSet --name npyArray16bitValUnet256BackendReducedLr --model pix2pix --netG unet_256 --direction AtoB --lambda_L1 100 --dataset_mode np_array_aligned --norm batch --pool_size 0  --preprocess none --display_port 9999 --rmse --display_split_A_color_channels --display_name_A_R DXIN --display_name_A_G DXO --display_name_A_B 4CUMAP --display_ncols 3 --display_ewma_loss --display_ewma_halflife 3 --validate --validation_freq 2000 --lr 0.00002

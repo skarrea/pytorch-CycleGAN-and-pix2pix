@@ -6,8 +6,8 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-datasetPath = Path('../datasets/16bitnumpyarrayDatasetValSetClean') 
-outpath = Path( '../datasets/16bitnumpyarrayDatasetValSetCleanpng')
+datasetPath = Path('../datasets/npUint8-1minp5Max') 
+outpath = Path( '../datasets/npUint8-1minp5Maxpng')
 
 if not outpath.exists():
     outpath.mkdir()

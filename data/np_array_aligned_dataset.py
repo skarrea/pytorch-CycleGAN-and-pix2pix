@@ -13,7 +13,7 @@ You need to implement the following functions:
 """
 import os
 import numpy as np
-from data.base_dataset import BaseDataset, get_transform, get_params
+from data.base_dataset import BaseDataset, get_transform_npy, get_params
 import torchvision.transforms as transforms
 
 # from data.image_folder import make_dataset
@@ -39,7 +39,6 @@ def make_dataset(dir, max_dataset_size = float("inf")):
     AB_paths = [(APath, BPath) for APath, BPath in zip(APaths, BPaths)]
 
     return AB_paths
-
     
 
 class NpArrayAlignedDataset(BaseDataset):
@@ -109,24 +108,24 @@ class NpArrayAlignedDataset(BaseDataset):
         # return {'A': A, 'B': B, 'A_paths': AB_path, 'B_paths': AB_path}
         
         A_Path, B_Path = self.AB_paths[index]
-        A = np.load(A_Path).astype(np.float32)
-        B = np.load(B_Path).astype(np.float32)
+        A = np.load(A_Path)
+        B = np.load(B_Path)
 
         # Reshape into [num_ims, channels, x, y]
         # A = np.moveaxis(A, -1, 0)
-        B = np.moveaxis(np.array([B, B, B]), 0, -1)
+        # B = np.moveaxis(np.array([B, B, B]), 0, -1)
 
         # apply the same transform to both A and B
-        # transform_params = get_params(self.opt, A.shape[:2])
-        # A_transform = get_transform(self.opt, transform_params, grayscale=(self.input_nc == 1))
-        # B_transform = get_transform(self.opt, transform_params, grayscale=(self.output_nc == 1))
+        transform_params = get_params(self.opt, A.shape[:2])
+        A_transform_list = get_transform_npy(self.opt, transform_params, grayscale=(self.input_nc == 1))
+        B_transform_list = get_transform_npy(self.opt, transform_params, grayscale=(self.output_nc == 1), scale = False)
 
-        A_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((70, 50, 222), (141.5, 109, 402))])
-        B_transform = transforms.Compose([transforms.ToTensor()])
+        A_transform = transforms.Compose(A_transform_list)
+        B_transform = transforms.Compose(B_transform_list)
 
         A = A_transform(A)
         B = B_transform(B)
-
+        
         return {'A': A, 'B': B, 'A_paths': A_Path, 'B_paths': B_Path}
 
 

@@ -4,6 +4,7 @@ It also includes common transformation functions (e.g., get_transform, __scale_w
 """
 import random
 import numpy as np
+import torch
 import torch.utils.data as data
 from PIL import Image
 import torchvision.transforms as transforms
@@ -111,6 +112,27 @@ def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, conve
             transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
     return transforms.Compose(transform_list)
 
+def get_transform_npy(opt, params=None, grayscale = False, scale = True):
+    transform_list = [transforms.ToTensor(), transforms.ConvertImageDtype(torch.float)]
+
+    if not opt.no_flip:
+        if params is None:
+            transform_list.append(transforms.RandomHorizontalFlip())
+        elif params['flip']:
+            transform_list.append(transforms.Lambda(lambda img: __flip_npy(img, params['flip'])))
+
+    if 'crop' in opt.preprocess:
+        if params is None:
+            transform_list.append(transforms.RandomCrop(opt.crop_size))
+        else:
+            transform_list.append(transforms.Lambda(lambda img: __crop(img, params['crop_pos'], opt.crop_size)))
+    if scale:
+        if grayscale:
+            transform_list += [transforms.Normalize((0.5,), (0.5,))]
+        else:
+            transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+            
+    return transform_list
 
 def __make_power_2(img, base, method=Image.BICUBIC):
     ow, oh = img.size
@@ -146,6 +168,10 @@ def __flip(img, flip):
         return img.transpose(Image.FLIP_LEFT_RIGHT)
     return img
 
+def __flip_npy(tensor, flip):
+    if flip:
+        return torch.flip(tensor, [2]) # ud is leftright the way the input images work
+    return tensor
 
 def __print_size_warning(ow, oh, w, h):
     """Print warning information about image size(only print once)"""

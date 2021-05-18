@@ -59,6 +59,8 @@ class BaseOptions():
         parser.add_argument('--display_name_A_R', type=str, default = 'A_R', help = 'display name for the R channel of the real_A image. Only if display_split_A_color_cahnnels.')
         parser.add_argument('--display_name_A_G', type=str, default = 'A_G', help = 'display name for the G channel of the real_A image. Only if display_split_A_color_cahnnels.')
         parser.add_argument('--display_name_A_B', type=str, default = 'A_B', help = 'display name for the B channel of the real_A image. Only if display_split_A_color_cahnnels.')
+        parser.add_argument('--B_bias', type=float, default = 0.0, help = 'Bias used in normalization of the B images. The images will be subtracted by this number then divided B_range during normalization. Will only work for the np_array_aligned dataset type.')
+        parser.add_argument('--B_range', type=float, default = 1.0, help = 'Range used in normalization of the B images. The images will be subtracted by the bias and divided by the range during normalization. Will only work for the np_array_aligned dataset type.')
         self.initialized = True
         return parser
 
@@ -138,4 +140,8 @@ class BaseOptions():
             torch.cuda.set_device(opt.gpu_ids[0])
 
         self.opt = opt
+
         return self.opt
+
+# def warn_incompatible_arguments(self):
+    

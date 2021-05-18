@@ -112,7 +112,7 @@ def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, conve
             transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
     return transforms.Compose(transform_list)
 
-def get_transform_npy(opt, params=None, grayscale = False, scale = True):
+def get_transform_npy(opt, params=None, grayscale = False, scale = 'A'):
     transform_list = [transforms.ToTensor(), transforms.ConvertImageDtype(torch.float)]
 
     if not opt.no_flip:
@@ -126,11 +126,16 @@ def get_transform_npy(opt, params=None, grayscale = False, scale = True):
             transform_list.append(transforms.RandomCrop(opt.crop_size))
         else:
             transform_list.append(transforms.Lambda(lambda img: __crop(img, params['crop_pos'], opt.crop_size)))
-    if scale:
+    if scale == 'A':
         if grayscale:
             transform_list += [transforms.Normalize((0.5,), (0.5,))]
         else:
             transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+    elif scale == 'B':
+        if grayscale:
+            transform_list += [transforms.Normalize((opt.B_bias,), (opt.B_range,))]
+        else:
+            transform_list += [transforms.Normalize((opt.B_bias, opt.B_bias, opt.B_bias), (opt.B_range, opt.B_range, opt.B_range))]
             
     return transform_list
 

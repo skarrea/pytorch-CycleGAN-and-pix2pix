@@ -119,7 +119,7 @@ class Visualizer():
         print('Command: %s' % cmd)
         Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
 
-    def display_current_results(self, visuals, epoch, save_result):
+    def display_current_results(self, visuals, epoch, save_result, image_path = ''):
         """Display current results on visdom; save current results to an HTML file.
 
         Parameters:
@@ -160,7 +160,7 @@ class Visualizer():
                     label_html += '<tr>%s</tr>' % label_html_row
                 try:
                     self.vis.images(images, nrow=ncols, win=self.display_id + 1,
-                                    padding=2, opts=dict(title=title + ' images'))
+                                    padding=2, opts=dict(title=title + ' images: ' + ntpath.basename(image_path)))
                     label_html = '<table>%s</table>' % label_html
                     self.vis.text(table_css + label_html, win=self.display_id + 2,
                                   opts=dict(title=title + ' labels'))

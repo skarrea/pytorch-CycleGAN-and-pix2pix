@@ -137,10 +137,16 @@ class BaseModel(ABC):
             # remake the visual_ret dict without real_A
             del visual_ret['real_A']
 
+            # Add singleton dimension to be able to expand color channels
+            # shape [batch size, xdim, ydim returned at previous step]
+            R = torch.unsqueeze(R, 1) 
+            G = torch.unsqueeze(G, 1)
+            B = torch.unsqueeze(B, 1)
+
             tmpDict = OrderedDict({
-                self.opt.display_name_A_R : torch.unsqueeze(R.repeat(3,1,1), 0),
-                self.opt.display_name_A_G : torch.unsqueeze(G.repeat(3,1,1), 0),
-                self.opt.display_name_A_B : torch.unsqueeze(B.repeat(3,1,1), 0),
+                self.opt.display_name_A_R : R.repeat(1,3,1,1),
+                self.opt.display_name_A_G : G.repeat(1,3,1,1),
+                self.opt.display_name_A_B : B.repeat(1,3,1,1),
             })
 
             tmpDict.update(visual_ret)
